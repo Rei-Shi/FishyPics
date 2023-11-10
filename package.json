@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Rei-Shi/web_server.git"
+    "url": "git+https://github.com/Rei-Shi/FishyPics.git"
   },
   "keywords": [
     "server",
@@ -18,10 +18,7 @@
   ],
   "author": "SE04",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/Rei-Shi/web_server/issues"
-  },
-  "homepage": "https://github.com/Rei-Shi/web_server#readme",
+  "homepage": "https://github.com/Rei-Shi/FishyPics#readme",
   "devDependencies": {
     "electron": "^27.0.3",
     "electron-packager": "^17.1.2"
@@ -35,7 +32,6 @@
     "fs": "^0.0.1-security",
     "mini-css-extract-plugin": "^2.7.6",
     "path": "^0.12.7",
-    "quick-local-ip": "^1.0.7",
     "request": "^2.88.2",
     "ws": "^8.14.2"
   }

@@ -1,8 +1,8 @@
 const { app, BrowserWindow } = require('electron');
-const myip = require('quick-local-ip');
 const express = require('express');
 const WebSocket = require('ws');
 const bodyParser = require('body-parser');
+const os = require('os');
 
 const Config = {
     http_port: '8080',
@@ -17,9 +17,14 @@ server.listen(Config.http_port);
 // WSS server
 const wss = new WebSocket.Server({ port: Config.socket_port });
 
+//Получаем IP устройства
+const interfaces = os.networkInterfaces();
+const wirelessInterface = interfaces['Беспроводная сеть'];
+const ipAddress = wirelessInterface[0].address;
+
 // IP websocket'а и web сервера
-console.log('[SERVER]: WebSocket on: ' + myip.getLocalIP4() + ':' + Config.socket_port);
-console.log('[SERVER]: HTTP on: ' + myip.getLocalIP4() + ':' + Config.http_port);
+console.log('[SERVER]: WebSocket on: ' + ipAddress + ':' + Config.socket_port);
+console.log('[SERVER]: HTTP on: ' + ipAddress + ':' + Config.http_port + ' <--- Connect here');
 
 let mainWindow;
 

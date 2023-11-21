@@ -26,6 +26,11 @@ const ipAddress = wirelessInterface[0].address;
 console.log('[SERVER]: WebSocket on: ' + ipAddress + ':' + Config.socket_port);
 console.log('[SERVER]: HTTP on: ' + ipAddress + ':' + Config.http_port + ' <--- Connect here');
 
+const clientScript = `window.serverIpAddress = '${ipAddress}';`;
+_app.get('/getIpAddress', function (req, res) {
+    res.send(clientScript);
+});
+
 let mainWindow;
 
 function createWindow() {

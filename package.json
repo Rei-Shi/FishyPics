@@ -20,6 +20,7 @@
   "license": "ISC",
   "homepage": "https://github.com/Rei-Shi/FishyPics#readme",
   "devDependencies": {
+    "@electron/packager": "^18.0.0",
     "electron": "^27.0.3",
     "electron-packager": "^17.1.2"
   },

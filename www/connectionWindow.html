@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Mode</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        input {
+            margin-bottom: 10px;
+            width: 80%;
+            padding: 5px;
+        }
+
+        button {
+            width: 80%;
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <button onclick="selectMode('server', this)">Server</button>
+    <button onclick="selectMode('client', this)">Client</button>
+    <input type="text" id="ipAddress" placeholder="Enter IP Address" style="display: none;">
+    <button onclick="connect()" id="connectButton" style="display: none;">Connect</button>
+
+    <script>
+        function selectMode(mode, button) {
+            const ipAddressInput = document.getElementById('ipAddress');
+            const connectButton = document.getElementById('connectButton');
+            const serverButton = document.querySelector('button:nth-of-type(1)');
+            const clientButton = document.querySelector('button:nth-of-type(2)');
+
+            if (mode === 'server') {
+                ipAddressInput.style.display = 'none';
+                connectButton.style.display = 'none';
+                window.api.send('connect', 'localhost');
+            } else {
+                ipAddressInput.style.display = 'block';
+                connectButton.style.display = 'block';
+                serverButton.style.display = 'none';
+                clientButton.style.display = 'none';
+                window.api.send('set-connection-mode', 'client');
+            }
+        }
+
+        function connect() {
+            const ipAddress = document.getElementById('ipAddress').value;
+            window.api.send('connect', ipAddress);
+        }
+    </script>
+</body>
+
+</html>

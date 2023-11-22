@@ -1,8 +1,9 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const express = require('express');
 const WebSocket = require('ws');
 const bodyParser = require('body-parser');
 const os = require('os');
+const path = require('path');
 
 const Config = {
     http_port: '8080',
@@ -12,19 +13,40 @@ const Config = {
 // Http server
 const _app = express();
 const server = require('http').Server(_app);
-server.listen(Config.http_port);
+
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error('[SERVER]: Cannot start the application because the HTTP port is already in use.');
+        console.error('[SERVER]: Skipping HTTP server initialization.');
+    } else {
+        throw error;
+    }
+});
+
+server.listen(Config.http_port, () => {
+    console.log('[SERVER]: HTTP on: ' + ipAddress + ':' + Config.http_port + ' <--- Connect here');
+});
 
 // WSS server
 const wss = new WebSocket.Server({ port: Config.socket_port });
+
+wss.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error('[SERVER]: Cannot start the WebSocket server because the port is already in use.');
+        console.error('[SERVER]: Skipping WebSocket server initialization.');
+    } else {
+        throw error;
+    }
+});
+
+wss.on('listening', () => {
+    console.log('[SERVER]: WebSocket on: ' + ipAddress + ':' + Config.socket_port);
+});
 
 //Получаем IP устройства
 const interfaces = os.networkInterfaces();
 const wirelessInterface = interfaces['Беспроводная сеть'];
 const ipAddress = wirelessInterface[0].address;
-
-// IP websocket'а и web сервера
-console.log('[SERVER]: WebSocket on: ' + ipAddress + ':' + Config.socket_port);
-console.log('[SERVER]: HTTP on: ' + ipAddress + ':' + Config.http_port + ' <--- Connect here');
 
 const clientScript = `window.serverIpAddress = '${ipAddress}';`;
 _app.get('/getIpAddress', function (req, res) {
@@ -34,6 +56,8 @@ _app.get('/getIpAddress', function (req, res) {
 let mainWindow;
 
 function createWindow() {
+    let connectionAddress = 'localhost'; // Начальное значение
+
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -42,12 +66,83 @@ function createWindow() {
         useContentSize: true,
     });
 
-    mainWindow.loadURL('http://localhost:8080');
-    mainWindow.focus();
-    mainWindow.webContents.openDevTools();
+    // Создаем Promise, который будет разрешен, когда окно выбора режима закроется
+    const connectionPromise = new Promise((resolve) => {
+        createConnectionWindow(resolve, setConnectionAddress);
+    });
+
+    // Ожидаем разрешения Promise перед загрузкой основного окна
+    connectionPromise.then(() => {
+        mainWindow.loadURL(`http://${connectionAddress}:8080`);
+        mainWindow.focus();
+        mainWindow.webContents.openDevTools();
+    });
 
     mainWindow.on('closed', function () {
-        mainWindow = null;
+        app.quit();
+    });
+
+    function setConnectionAddress(address) {
+        connectionAddress = address;
+    }
+
+    ipcMain.on('set-connection-address', (event, address) => {
+        setConnectionAddress(address);
+    });
+
+    // Меню приложения
+    const template = [
+        {
+            label: 'Mode',
+            submenu: [
+                {
+                    label: 'Server',
+                    click: async () => {
+                        setConnectionAddress('localhost');
+                        await connectionPromise; // Ожидаем, пока окно выбора режима закроется
+                        mainWindow.loadURL(`http://${connectionAddress}:8080`);
+                    },
+                },
+                {
+                    label: 'Client',
+                    click: async () => {
+                        await connectionPromise; // Ожидаем, пока окно выбора режима закроется
+                        createConnectionWindow();
+                    },
+                },
+            ],
+        },
+    ];
+
+    const menu = Menu.buildFromTemplate(template);
+    Menu.setApplicationMenu(menu);
+}
+
+function createConnectionWindow(resolve, setConnectionAddress) {
+    let connectionWindow = new BrowserWindow({
+        width: 400,
+        height: 200,
+        title: 'Connection Mode',
+        webPreferences: {
+            nodeIntegration: false,
+            preload: path.join(__dirname, 'preload.js'),
+        },
+    });
+
+    connectionWindow.loadFile('www/connectionWindow.html');
+    connectionWindow.webContents.openDevTools();
+
+    ipcMain.on('connect', (event, ipAddress) => {
+        if (ipAddress.trim() === '') {
+            dialog.showErrorBox('Error', 'Please enter a valid IP address.');
+        } else {
+            setConnectionAddress(ipAddress);
+            mainWindow.loadURL(`http://${ipAddress}:8080`);
+            mainWindow.focus();
+            mainWindow.webContents.openDevTools();
+            connectionWindow.close();
+            resolve(); // Разрешаем Promise после закрытия окна выбора режима
+        }
     });
 }
 

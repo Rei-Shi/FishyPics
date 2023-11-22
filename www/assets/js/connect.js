@@ -4,10 +4,11 @@
 let Connect = {
     connection: null,
     connection_status: false,
-    port: '3030', // порт
+    ip_address: window.location.hostname,
+    port: '3030',
 
     start: function () {
-        this.connection = new WebSocket('ws://' + window.serverIpAddress + ':' + this.port);
+        this.connection = new WebSocket('ws://' + this.ip_address + ':' + this.port);
 
         this.connection.onopen = function (e) {
             Connect.connection_status = true;

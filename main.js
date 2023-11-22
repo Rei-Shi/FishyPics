@@ -48,11 +48,6 @@ const interfaces = os.networkInterfaces();
 const wirelessInterface = interfaces['Беспроводная сеть'];
 const ipAddress = wirelessInterface[0].address;
 
-const clientScript = `window.serverIpAddress = '${ipAddress}';`;
-_app.get('/getIpAddress', function (req, res) {
-    res.send(clientScript);
-});
-
 let mainWindow;
 
 function createWindow() {

@@ -15,10 +15,11 @@ $(function () {
     const Connect = {
         connection: null,
         connection_status: false,
-        port: '3030', // порт
+        ip_address: window.location.hostname,
+        port: '3030',
 
         start: function () {
-            this.connection = new WebSocket('ws://' + window.serverIpAddress + ':' + this.port);
+            this.connection = new WebSocket('ws://' + this.ip_address + ':' + this.port);
 
             this.connection.onopen = function (e) {
                 Connect.connection_status = true;
@@ -75,15 +76,5 @@ $(function () {
     });
 
     // Запускаем соединение с сервером при загрузке страницы
-    fetch('http://localhost:8080/getIpAddress')
-        .then(response => response.text())
-        .then(script => {
-            // Добавляем скрипт с IP-адресом в head документа
-            const scriptElement = document.createElement('script');
-            scriptElement.text = script;
-            document.head.appendChild(scriptElement);
-
-            // Запускаем соединение с сервером
-            Connect.start();
-        });
+    Connect.start();
 });

@@ -51,7 +51,7 @@ const ipAddress = wirelessInterface[0].address;
 let mainWindow;
 
 function createWindow() {
-    let connectionAddress = 'localhost'; // Начальное значение
+    let connectionAddress = 'localhost';
 
     mainWindow = new BrowserWindow({
         width: 1200,
@@ -61,16 +61,13 @@ function createWindow() {
         useContentSize: true,
     });
 
-    // Создаем Promise, который будет разрешен, когда окно выбора режима закроется
     const connectionPromise = new Promise((resolve) => {
         createConnectionWindow(resolve, setConnectionAddress);
     });
 
-    // Ожидаем разрешения Promise перед загрузкой основного окна
     connectionPromise.then(() => {
         mainWindow.loadURL(`http://${connectionAddress}:8080`);
         mainWindow.focus();
-        mainWindow.webContents.openDevTools();
     });
 
     mainWindow.on('closed', function () {
@@ -94,14 +91,14 @@ function createWindow() {
                     label: 'Server',
                     click: async () => {
                         setConnectionAddress('localhost');
-                        await connectionPromise; // Ожидаем, пока окно выбора режима закроется
+                        await connectionPromise;
                         mainWindow.loadURL(`http://${connectionAddress}:8080`);
                     },
                 },
                 {
                     label: 'Client',
                     click: async () => {
-                        await connectionPromise; // Ожидаем, пока окно выбора режима закроется
+                        await connectionPromise;
                         createConnectionWindow();
                     },
                 },
@@ -125,7 +122,6 @@ function createConnectionWindow(resolve, setConnectionAddress) {
     });
 
     connectionWindow.loadFile('www/connectionWindow.html');
-    connectionWindow.webContents.openDevTools();
 
     ipcMain.on('connect', (event, ipAddress) => {
         if (ipAddress.trim() === '') {
@@ -134,9 +130,8 @@ function createConnectionWindow(resolve, setConnectionAddress) {
             setConnectionAddress(ipAddress);
             mainWindow.loadURL(`http://${ipAddress}:8080`);
             mainWindow.focus();
-            mainWindow.webContents.openDevTools();
             connectionWindow.close();
-            resolve(); // Разрешаем Promise после закрытия окна выбора режима
+            resolve();
         }
     });
 }
